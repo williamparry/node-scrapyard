@@ -11,6 +11,8 @@ var xml2js = require("xml2js");
 var debug = require("debug")("scrapyard");
 var async = require("async");
 var dur = require("dur");
+var iconv = require('iconv-lite');
+var charsetParser = require('charset-parser');
 
 function scrapyard(config){
 	if (!(this instanceof scrapyard)) return new scrapyard(config);
@@ -131,6 +133,8 @@ scrapyard.prototype.scrape.prototype.scrape = scrapyard.prototype.scrape;
 // parse
 scrapyard.prototype.parse = function(options, data, fn){
 	var self = this;
+	var charset = charsetParser(response.headers['content-type'], data, 'iso-8859-1');
+	data = iconv.decode(data, charset);
 	switch (options.type) {
 		case "html": 
 			// create cheerio object from html result
@@ -152,6 +156,8 @@ scrapyard.prototype.parse = function(options, data, fn){
 	}
 	return this;
 };
+
+iconv.extendNodeEncodings();
 
 // fetch an url with request or get it from storage
 scrapyard.prototype.fetch = function(options, fn) {
