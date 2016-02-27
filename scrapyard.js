@@ -131,7 +131,7 @@ scrapyard.prototype.scrape = function(options, fn) {
 scrapyard.prototype.scrape.prototype.scrape = scrapyard.prototype.scrape;
 
 // parse
-scrapyard.prototype.parse = function(options, data, fn){
+scrapyard.prototype.parse = function(options, data, fn, response){
 	var self = this;
 	var charset = charsetParser(response.headers['content-type'], data, 'iso-8859-1');
 	data = iconv.decode(data, charset);
@@ -173,14 +173,14 @@ scrapyard.prototype.fetch = function(options, fn) {
 						request(options, function(err, response, data){
 							if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 							if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-							self.parse(options, data, fn);
+							self.parse(options, data, fn, response);
 							self.storage.put(options.storageid, data, function(){
 								debug('[save] %s', options.url);
 							});
 						});
 					} else {
 						// call back
-						self.parse(options, data.toString('utf8'), fn);
+						self.parse(options, data.toString('utf8'), fn, response);
 					}
 				});
 			} else {
@@ -188,7 +188,7 @@ scrapyard.prototype.fetch = function(options, fn) {
 				request(options, function(err, response, data){
 					if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 					if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-					self.parse(options, data, fn);
+					self.parse(options, data, fn, response);
 					self.storage.put(options.storageid, data, function(){
 						debug('[save] %s', options.url);
 					});
@@ -200,7 +200,7 @@ scrapyard.prototype.fetch = function(options, fn) {
 		request(options, function(err, response, data){
 			if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 			if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-			self.parse(options, data, fn);
+			self.parse(options, data, fn, response);
 		});
 	}
 };
