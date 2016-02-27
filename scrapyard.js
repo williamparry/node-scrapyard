@@ -131,10 +131,12 @@ scrapyard.prototype.scrape = function(options, fn) {
 scrapyard.prototype.scrape.prototype.scrape = scrapyard.prototype.scrape;
 
 // parse
-scrapyard.prototype.parse = function(options, data, fn, response){
+scrapyard.prototype.parse = function(options, data, fn, contentType){
 	var self = this;
-	var charset = charsetParser(response.headers['content-type'], data, 'iso-8859-1');
-	data = iconv.decode(data, charset);
+	if(contentType) {
+		var charset = charsetParser(contentType, data, 'iso-8859-1');
+		data = iconv.decode(data, charset);
+	}
 	switch (options.type) {
 		case "html": 
 			// create cheerio object from html result
@@ -173,14 +175,14 @@ scrapyard.prototype.fetch = function(options, fn) {
 						request(options, function(err, response, data){
 							if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 							if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-							self.parse(options, data, fn, response);
+							self.parse(options, data, fn, response.headers['content-type']);
 							self.storage.put(options.storageid, data, function(){
 								debug('[save] %s', options.url);
 							});
 						});
 					} else {
 						// call back
-						self.parse(options, data.toString('utf8'), fn, response);
+						self.parse(options, data.toString('utf8'), fn);
 					}
 				});
 			} else {
@@ -188,7 +190,7 @@ scrapyard.prototype.fetch = function(options, fn) {
 				request(options, function(err, response, data){
 					if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 					if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-					self.parse(options, data, fn, response);
+					self.parse(options, data, fn, response.headers['content-type']);
 					self.storage.put(options.storageid, data, function(){
 						debug('[save] %s', options.url);
 					});
@@ -200,7 +202,7 @@ scrapyard.prototype.fetch = function(options, fn) {
 		request(options, function(err, response, data){
 			if (err) return debug('[err!] %s - %s', err, options.url) || fn(err);
 			if (response.statusCode !== 200) return debug('[err!] Response Status Code %d - %s', response.statusCode, options.url) || fn(new Error("Response Status Code "+response.statusCode));
-			self.parse(options, data, fn, response);
+			self.parse(options, data, fn, response.headers['content-type']);
 		});
 	}
 };
